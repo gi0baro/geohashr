@@ -1,0 +1,86 @@
+name: test
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+env:
+  MATURIN_VERSION: 1.1.0
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install maturin==${{ env.MATURIN_VERSION }}
+        maturin develop --extras=test
+    - name: Test
+      run: |
+        source .venv/bin/activate
+        py.test -v tests
+
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install maturin==${{ env.MATURIN_VERSION }}
+        maturin develop --extras=test
+    - name: Test
+      run: |
+        source .venv/bin/activate
+        py.test -v tests
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -m venv venv
+        venv/Scripts/Activate.ps1
+        pip install maturin==${{ env.MATURIN_VERSION }} pytest
+        maturin develop --extras=test
+    - name: Test
+      run: |
+        venv/Scripts/Activate.ps1
+        py.test -v tests

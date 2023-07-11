@@ -1,0 +1,52 @@
+[project]
+name = "geohashr"
+authors = [
+    {name = "Giovanni Barillari", email = "g@baro.dev"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: GIS"
+]
+
+dynamic = [
+    "description",
+    "keywords",
+    "license",
+    "readme",
+    "version"
+]
+
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest~=7.1.2"
+]
+
+[project.urls]
+Homepage = "https://github.com/gi0baro/geohashr"
+Funding = "https://github.com/sponsors/gi0baro"
+Source = "https://github.com/gi0baro/geohashr"
+
+[build-system]
+requires = ["maturin>=1.1.0,<1.2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+module-name = "geohashr._geohashr"
+bindings = "pyo3"
