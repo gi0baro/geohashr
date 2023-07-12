@@ -1,13 +1,12 @@
-import pytest
-
-from geohashr import neighbors, neighbor, EncodeError, InvalidDirectionError
 from contextlib import nullcontext
 
+import pytest
 
+from geohashr import EncodeError, ParamError, neighbors, neighbor
 
 
 @pytest.mark.parametrize(
-    "hash,raises,out",
+    ("hash", "raises", "out"),
     [
         ("000000000000", pytest.raises(EncodeError), {}),
         ("zzzzzzzzzzzz", pytest.raises(EncodeError), {}),
@@ -33,7 +32,7 @@ def test_neighbors(hash, raises, out):
 
 
 @pytest.mark.parametrize(
-    "direction,out",
+    ("direction", "out"),
     [
         ("e", "bgr96qxvpd4d"),
         ("n", "bgr96qxvpd47"),
@@ -50,5 +49,5 @@ def test_neighbor(direction, out):
 
 
 def test_neighbor_invalid_direction():
-    with pytest.raises(InvalidDirectionError):
+    with pytest.raises(ParamError):
         assert neighbor("bgr96qxvpd46", "g")

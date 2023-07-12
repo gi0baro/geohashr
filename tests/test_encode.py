@@ -1,6 +1,6 @@
 import pytest
 
-from geohashr import encode, decode
+from geohashr import bbox, encode, decode
 
 
 @pytest.mark.parametrize("hash", ["000000000000","zzzzzzzzzzzz","bgr96qxvpd46"])

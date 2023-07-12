@@ -1,11 +1,11 @@
 from ._geohashr import (
+    DecodeError,
+    EncodeError,
+    ParamError,
     bbox,
     decode_exact,
     decode,
-    DecodeError,
     encode,
-    EncodeError,
-    InvalidDirectionError,
     neighbor,
-    neighbors,
+    neighbors
 )
