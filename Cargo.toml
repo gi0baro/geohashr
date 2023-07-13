@@ -2,7 +2,10 @@
 name = "geohashr"
 version = "1.0.0"
 description = "Just another geohashing library"
-authors = ["Giovanni Barillari <g@baro.dev>"]
+authors = [
+    "Giovanni Barillari <g@baro.dev>",
+    "Paolo Quadri <pquadri10@gmail.com>"
+]
 license = "BSD-3-Clause"
 edition = "2021"
 

@@ -1,7 +1,8 @@
 [project]
 name = "geohashr"
 authors = [
-    {name = "Giovanni Barillari", email = "g@baro.dev"}
+    {name = "Giovanni Barillari", email = "g@baro.dev"},
+    {name = "Paolo Quadri", email = "pquadri10@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
