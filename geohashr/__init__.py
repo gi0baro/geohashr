@@ -1,1 +1,11 @@
-from ._geohashr import decode, decode_exact, encode
+from ._geohashr import (
+    DecodeError,
+    EncodeError,
+    ParamError,
+    bbox,
+    decode_exact,
+    decode,
+    encode,
+    neighbor,
+    neighbors
+)
