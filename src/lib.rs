@@ -7,7 +7,7 @@ use geohash::{self, Direction};
 use lazy_static::lazy_static;
 use pyo3::{
     create_exception,
-    exceptions::{PyValueError, PySyntaxError},
+    exceptions::{PySyntaxError, PyValueError},
     prelude::*,
     types::PyDict,
 };
@@ -23,14 +23,14 @@ enum NeighborError {
 
 lazy_static! {
     static ref DIRECTION_MAP: HashMap<&'static str, Direction> = HashMap::from([
-        ("sw",  Direction::SW),
-        ("s",  Direction::S),
-        ("se",  Direction::SE),
-        ("w",  Direction::W),
-        ("e",  Direction::E),
-        ("nw",  Direction::NW),
-        ("n",  Direction::N),
-        ("ne",  Direction::NE)
+        ("sw", Direction::SW),
+        ("s", Direction::S),
+        ("se", Direction::SE),
+        ("w", Direction::W),
+        ("e", Direction::E),
+        ("nw", Direction::NW),
+        ("n", Direction::N),
+        ("ne", Direction::NE)
     ]);
 }
 
@@ -38,7 +38,7 @@ lazy_static! {
 #[pyo3(signature = (hash))]
 fn decode(py: Python, hash: &str) -> PyResult<(f64, f64)> {
     match py.allow_threads(|| geohash::decode(hash)) {
-        Ok((coords, _, _)) => Ok((coords.x, coords.y)),
+        Ok((coords, _, _)) => Ok((coords.y, coords.x)),
         Err(err) => Err(DecodeError::new_err(err.to_string())),
     }
 }
@@ -47,7 +47,7 @@ fn decode(py: Python, hash: &str) -> PyResult<(f64, f64)> {
 #[pyo3(signature = (hash))]
 fn decode_exact(py: Python, hash: &str) -> PyResult<(f64, f64, f64, f64)> {
     match py.allow_threads(|| geohash::decode(hash)) {
-        Ok((coords, dx, dy)) => Ok((coords.x, coords.y, dx, dy)),
+        Ok((coords, dx, dy)) => Ok((coords.y, coords.x, dy, dx)),
         Err(err) => Err(DecodeError::new_err(err.to_string())),
     }
 }
@@ -55,7 +55,7 @@ fn decode_exact(py: Python, hash: &str) -> PyResult<(f64, f64, f64, f64)> {
 #[pyfunction]
 #[pyo3(signature = (lat, lon, len=12))]
 fn encode(py: Python, lat: f64, lon: f64, len: usize) -> PyResult<String> {
-    match py.allow_threads(|| geohash::encode(geohash::Coord { x: lat, y: lon }, len)) {
+    match py.allow_threads(|| geohash::encode(geohash::Coord { x: lon, y: lat }, len)) {
         Ok(hash) => Ok(hash),
         Err(err) => Err(EncodeError::new_err(err.to_string())),
     }
@@ -75,7 +75,7 @@ fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<&'p PyDict> {
             dict.set_item(pyo3::intern!(py, "w"), min.x)?;
             dict.set_item(pyo3::intern!(py, "n"), max.y)?;
             Ok(dict)
-        },
+        }
         Err(err) => Err(EncodeError::new_err(err.to_string())),
     }
 }
@@ -112,7 +112,7 @@ fn neighbor(py: Python, hash: &str, direction: &str) -> PyResult<String> {
     }) {
         Ok(hash) => Ok(hash),
         Err(NeighborError::Hash(err)) => Err(EncodeError::new_err(err.to_string())),
-        Err(NeighborError::Direction) => Err(ParamError::new_err("Invalid direction"))
+        Err(NeighborError::Direction) => Err(ParamError::new_err("Invalid direction")),
     }
 }
 

@@ -52,3 +52,8 @@ def test_hash_segment(params):
     assert (ret['s'], ret['w']) == target
     assert ret['n'] - ret['s'] == 45
     assert ret['e'] - ret['w'] == 45
+
+
+def test_simple_decode(): 
+    lat, lon =  decode('u4pruydqqvj8')
+    assert (57.64911,10.40744) == (round(lat, 6), round(lon, 6))
