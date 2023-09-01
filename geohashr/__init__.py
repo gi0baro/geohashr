@@ -7,5 +7,5 @@ from ._geohashr import (
     decode,
     encode,
     neighbor,
-    neighbors
+    neighbors,
 )
