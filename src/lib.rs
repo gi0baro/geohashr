@@ -1,6 +1,3 @@
-#[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
 use std::collections::HashMap;
 
 use geohash::{self, Direction};
@@ -18,7 +15,7 @@ create_exception!(_geohashr, ParamError, PySyntaxError, "Geohash parameter error
 
 enum NeighborError {
     Hash(geohash::GeohashError),
-    Direction
+    Direction,
 }
 
 lazy_static! {
@@ -53,7 +50,7 @@ fn decode_exact(py: Python, hash: &str) -> PyResult<(f64, f64, f64, f64)> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (lat, lon, len=12))]
+#[pyo3(signature = (lat, lon, len = 12))]
 fn encode(py: Python, lat: f64, lon: f64, len: usize) -> PyResult<String> {
     match py.allow_threads(|| geohash::encode(geohash::Coord { x: lon, y: lat }, len)) {
         Ok(hash) => Ok(hash),
