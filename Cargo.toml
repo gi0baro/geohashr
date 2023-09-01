@@ -34,7 +34,6 @@ name = "_geohashr"
 crate-type = ["cdylib"]
 
 [dependencies]
-mimalloc = { version = "0.1.37", default-features = false, features = ["local_dynamic_tls"] }
 geohash = { version = "=0.13" }
 pyo3 = { version = "=0.19", features = ["extension-module"] }
 lazy_static = "1.4.0"
