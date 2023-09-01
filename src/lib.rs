@@ -18,7 +18,7 @@ create_exception!(_geohashr, ParamError, PySyntaxError, "Geohash parameter error
 
 enum NeighborError {
     Hash(geohash::GeohashError),
-    Direction
+    Direction,
 }
 
 lazy_static! {

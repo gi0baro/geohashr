@@ -1,17 +1,14 @@
 from typing import Tuple, TypedDict
 
-
 class DecodeError(ValueError): ...
 class EncodeError(ValueError): ...
 class ParamError(SyntaxError): ...
-
 
 class BBox(TypedDict):
     e: float
     n: float
     s: float
     w: float
-
 
 class Neighbors(TypedDict):
     e: str
@@ -22,7 +19,6 @@ class Neighbors(TypedDict):
     se: str
     sw: str
     w: str
-
 
 def bbox(hash: str) -> BBox: ...
 def decode_exact(hash: str) -> Tuple[float, float, float, float]: ...
