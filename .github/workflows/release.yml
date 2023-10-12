@@ -5,8 +5,8 @@ on:
     types: [published]
 
 env:
-  MATURIN_VERSION: 1.2.3
-  PY_ALL: 3.8 3.9 3.10 3.11 pypy3.8 pypy3.9 pypy3.10
+  MATURIN_VERSION: 1.3.0
+  PY_ALL: 3.8 3.9 3.10 3.11 3.12 pypy3.8 pypy3.9 pypy3.10
 
 jobs:
   sdist:
@@ -21,31 +21,29 @@ jobs:
     - uses: pyo3/maturin-action@v1
       with:
         maturin-version: v${{ env.MATURIN_VERSION }}
-        command: build
-        args: --release --sdist --interpreter 3.10
-        target: x64
-        manylinux: off
-        container: off
+        rust-toolchain: stable
+        command: sdist
+        args: --out dist
     - name: Upload sdist
       uses: actions/upload-artifact@v3
       with:
-        name: wheels
-        path: target/wheels/*.tar.gz
+        name: dist
+        path: dist
 
-  wheel-unix:
+  wheels:
     name: wheel ${{ matrix.platform || matrix.os }}(${{ matrix.target }}) - ${{ matrix.manylinux || 'auto' }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
+        os: [ubuntu, macos, windows]
         target: [x86_64, aarch64]
         manylinux: [auto]
         include:
           - os: ubuntu
             platform: linux
           - os: macos
-            interpreter: 3.8 3.9 3.10 3.11 pypy3.9 pypy3.10
+            interpreter: 3.8 3.9 3.10 3.11 3.12 pypy3.9 pypy3.10
           - os: ubuntu
             platform: linux
             target: aarch64
@@ -59,6 +57,11 @@ jobs:
             target: aarch64
             manylinux: musllinux_1_1
         exclude:
+          - os: ubuntu
+            target: x86_64
+            manylinux: auto
+          - os: windows
+            target: x86_64
           - os: windows
             target: aarch64
     steps:
@@ -66,43 +69,86 @@ jobs:
       - uses: pyo3/maturin-action@v1
         with:
           maturin-version: v${{ env.MATURIN_VERSION }}
+          rust-toolchain: stable
           command: build
-          args: --release --interpreter ${{ matrix.interpreter || env.PY_ALL }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || env.PY_ALL }}
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
           container: ${{ matrix.container }}
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          name: wheels
-          path: target/wheels
+          name: dist
+          path: dist
 
-  wheel-win:
-    runs-on: windows-latest
-    env:
-      PY_ALL: 3.8 3.9 3.10 3.11 C:\hostedtoolcache\windows\PyPy\3.9.17\x86\python3.exe C:\hostedtoolcache\windows\PyPy\3.10.12\x86\python3.exe
+  wheels-pgo:
+    name: pgo-wheel ${{ matrix.platform || matrix.os }} (${{ matrix.interpreter}} - ${{ matrix.target }} - ${{ matrix.manylinux || 'auto' }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows]
+        target: [x86_64]
+        manylinux: [auto]
+        interpreter: ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3.8", "pypy3.9", "pypy3.10"]
+        include:
+          - os: ubuntu
+            platform: linux
+
+    runs-on: ${{ matrix.os }}-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pyo3/maturin-action@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.interpreter }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools
+      - run: |
+          RUST_HOST=$(rustc -Vv | grep host | cut -d ' ' -f 2) rustup run stable bash -c 'echo LLVM_PROFDATA=$RUSTUP_HOME/toolchains/$RUSTUP_TOOLCHAIN/lib/rustlib/$RUST_HOST/bin/llvm-profdata >> "$GITHUB_ENV"'
+        shell: bash
+      - name: Build initial wheel
+        uses: PyO3/maturin-action@v1
         with:
           maturin-version: v${{ env.MATURIN_VERSION }}
+          rust-toolchain: stable
           command: build
-          args: --release --interpreter ${{ env.PY_ALL }}
-          target: x86_64
-          manylinux: auto
+          args: --release --out pgo_wheel --interpreter ${{ matrix.interpreter }}
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+        env:
+          RUSTFLAGS: "-Cprofile-generate=${{ github.workspace }}/profdata"
+      - name: Generate PGO data
+        run: |
+          pip install pytest
+          pip install geohashr --no-index --no-deps --find-links pgo_wheel --force-reinstall
+          pytest tests
+      - name: merge PGO data
+        run: ${{ env.LLVM_PROFDATA }} merge -o ${{ github.workspace }}/merged.profdata ${{ github.workspace }}/profdata
+      - name: Build PGO wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          tmaturin-version: v${{ env.MATURIN_VERSION }}
+          command: build
+          args: --release --out dist --interpreter ${{ matrix.interpreter }}
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+          rust-toolchain: stable
+        env:
+          RUSTFLAGS: "-Cprofile-use=${{ github.workspace }}/merged.profdata"
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          name: wheels
-          path: target/wheels
+          name: dist
+          path: dist
 
   release:
     runs-on: ubuntu-latest
-    needs: [ sdist, wheel-unix, wheel-win ]
+    needs: [ sdist, wheels, wheels-pgo ]
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: wheels
+          name: dist
+          path: dist
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -112,4 +158,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           pip install --upgrade pip twine
-          twine upload --skip-existing *
+          twine upload --skip-existing dist/*
