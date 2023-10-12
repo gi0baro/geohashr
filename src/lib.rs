@@ -102,7 +102,7 @@ fn neighbors<'p>(py: Python<'p>, hash: &str) -> PyResult<&'p PyDict> {
 fn neighbor(py: Python, hash: &str, direction: &str) -> PyResult<String> {
     match py.allow_threads(|| {
         if let Some(dir) = DIRECTION_MAP.get(direction) {
-            geohash::neighbor(hash, *dir).map_err(|e| NeighborError::Hash(e))
+            geohash::neighbor(hash, *dir).map_err(NeighborError::Hash)
         } else {
             Err(NeighborError::Direction)
         }
