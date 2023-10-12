@@ -127,7 +127,7 @@ jobs:
       - name: Build PGO wheel
         uses: PyO3/maturin-action@v1
         with:
-          tmaturin-version: v${{ env.MATURIN_VERSION }}
+          maturin-version: v${{ env.MATURIN_VERSION }}
           command: build
           args: --release --out dist --interpreter ${{ matrix.interpreter }}
           target: ${{ matrix.target }}
