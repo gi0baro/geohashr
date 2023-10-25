@@ -125,8 +125,5 @@ fn _geohashr(py: Python, module: &PyModule) -> PyResult<()> {
     module.add("EncodeError", py.get_type::<EncodeError>())?;
     module.add("ParamError", py.get_type::<ParamError>())?;
 
-    #[cfg(not(PyPy))]
-    pyo3::prepare_freethreaded_python();
-
     Ok(())
 }
