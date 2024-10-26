@@ -1,6 +1,6 @@
 import pytest
 
-from geohashr import bbox, encode, decode
+from geohashr import bbox, decode, encode
 
 
 @pytest.mark.parametrize(("lat", "lon"), [(51.566141, -0.009434)])

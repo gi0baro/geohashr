@@ -1,4 +1,10 @@
-use std::collections::HashMap;
+#[cfg(not(any(target_os = "freebsd", target_os = "windows")))]
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
+#[cfg(any(target_os = "freebsd", target_os = "windows"))]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 use geohash::{self, Direction};
 use lazy_static::lazy_static;
@@ -8,6 +14,7 @@ use pyo3::{
     prelude::*,
     types::PyDict,
 };
+use std::{collections::HashMap, sync::OnceLock};
 
 create_exception!(_geohashr, DecodeError, PyValueError, "Geohash decode error");
 create_exception!(_geohashr, EncodeError, PyValueError, "Geohash encode error");
@@ -60,13 +67,13 @@ fn encode(py: Python, lat: f64, lon: f64, len: usize) -> PyResult<String> {
 
 #[pyfunction]
 #[pyo3(signature = (hash))]
-fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<&'p PyDict> {
+fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
     match py.allow_threads(|| {
         let bbox = geohash::decode_bbox(hash)?;
         Ok::<(geohash::Coord, geohash::Coord), geohash::GeohashError>((bbox.min(), bbox.max()))
     }) {
         Ok((min, max)) => {
-            let dict = PyDict::new(py);
+            let dict = PyDict::new_bound(py);
             dict.set_item(pyo3::intern!(py, "e"), max.x)?;
             dict.set_item(pyo3::intern!(py, "s"), min.y)?;
             dict.set_item(pyo3::intern!(py, "w"), min.x)?;
@@ -79,10 +86,10 @@ fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<&'p PyDict> {
 
 #[pyfunction]
 #[pyo3(signature = (hash))]
-fn neighbors<'p>(py: Python<'p>, hash: &str) -> PyResult<&'p PyDict> {
+fn neighbors<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
     match py.allow_threads(|| geohash::neighbors(hash)) {
         Ok(neighbors) => {
-            let dict = PyDict::new(py);
+            let dict = PyDict::new_bound(py);
             dict.set_item(pyo3::intern!(py, "e"), neighbors.e)?;
             dict.set_item(pyo3::intern!(py, "n"), neighbors.n)?;
             dict.set_item(pyo3::intern!(py, "ne"), neighbors.ne)?;
@@ -113,17 +120,29 @@ fn neighbor(py: Python, hash: &str, direction: &str) -> PyResult<String> {
     }
 }
 
+pub fn get_lib_version() -> &'static str {
+    static LIB_VERSION: OnceLock<String> = OnceLock::new();
+
+    LIB_VERSION.get_or_init(|| {
+        let version = env!("CARGO_PKG_VERSION");
+        version.replace("-alpha", "a").replace("-beta", "b")
+    })
+}
+
 #[pymodule]
-fn _geohashr(py: Python, module: &PyModule) -> PyResult<()> {
+fn _geohashr(py: Python, module: &Bound<PyModule>) -> PyResult<()> {
+    module.add("__version__", get_lib_version())?;
+
     module.add_function(wrap_pyfunction!(decode, module)?)?;
     module.add_function(wrap_pyfunction!(decode_exact, module)?)?;
     module.add_function(wrap_pyfunction!(encode, module)?)?;
     module.add_function(wrap_pyfunction!(bbox, module)?)?;
     module.add_function(wrap_pyfunction!(neighbors, module)?)?;
     module.add_function(wrap_pyfunction!(neighbor, module)?)?;
-    module.add("DecodeError", py.get_type::<DecodeError>())?;
-    module.add("EncodeError", py.get_type::<EncodeError>())?;
-    module.add("ParamError", py.get_type::<ParamError>())?;
+
+    module.add("DecodeError", py.get_type_bound::<DecodeError>())?;
+    module.add("EncodeError", py.get_type_bound::<EncodeError>())?;
+    module.add("ParamError", py.get_type_bound::<ParamError>())?;
 
     Ok(())
 }

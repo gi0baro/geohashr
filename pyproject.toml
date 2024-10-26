@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Python",
@@ -36,9 +37,9 @@ requires-python = ">=3.8"
 dependencies = []
 
 [project.optional-dependencies]
-test = [
-    "pytest~=7.1.2"
-]
+lint = ["ruff~=0.5.0"]
+test = ["pytest~=8.3.2"]
+dev = ["geohashr[lint,test]"]
 
 [project.urls]
 Homepage = "https://github.com/gi0baro/geohashr"
@@ -46,9 +47,52 @@ Funding = "https://github.com/sponsors/gi0baro"
 Source = "https://github.com/gi0baro/geohashr"
 
 [build-system]
-requires = ["maturin>=1.1.0,<1.4.0"]
+requires = ["maturin>=1.1.0,<2"]
 build-backend = "maturin"
 
 [tool.maturin]
 module-name = "geohashr._geohashr"
 bindings = "pyo3"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+quote-style = 'double'
+
+[tool.ruff.lint]
+extend-select = [
+    # E and F are enabled by default
+    'B',      # flake8-bugbear
+    'C4',     # flake8-comprehensions
+    'C90',    # mccabe
+    'I',      # isort
+    'N',      # pep8-naming
+    'Q',      # flake8-quotes
+    'RUF100', # ruff (unused noqa)
+    'S',      # flake8-bandit
+    'W',      # pycodestyle
+]
+extend-ignore = [
+#    'B006', # mutable function args are fine
+#    'B008', # function calls in args defaults are fine
+#    'B034', # re.split won't confuse us
+#    'B904', # rising without from is fine
+#    'E731', # assigning lambdas is fine
+#    'N801', # leave to us class naming
+#    'N802', # leave to us method naming
+#    'N806', # leave to us var naming
+#    'N818', # leave to us exceptions naming
+    'S101', # assert is fine
+#    'S110', # pass on exceptions is fine
+]
+mccabe = { max-complexity = 24 }
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+lines-after-imports = 2
+known-first-party = ['geohashr', 'tests']
+
+[tool.ruff.lint.per-file-ignores]
+'geohashr/__init__.py' = ['F401']
+'tests/**' = ['B018', 'S110', 'S501']

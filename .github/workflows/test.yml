@@ -10,7 +10,7 @@ on:
       - master
 
 env:
-  MATURIN_VERSION: 1.3.0
+  MATURIN_VERSION: 1.7.4
 
 jobs:
   linux:
@@ -18,12 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install
@@ -35,19 +35,19 @@ jobs:
     - name: Test
       run: |
         source .venv/bin/activate
-        py.test -v tests
+        make test
 
   macos:
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install
@@ -59,19 +59,19 @@ jobs:
     - name: Test
       run: |
         source .venv/bin/activate
-        py.test -v tests
+        make test
 
   windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install
@@ -83,4 +83,4 @@ jobs:
     - name: Test
       run: |
         venv/Scripts/Activate.ps1
-        py.test -v tests
+        make test

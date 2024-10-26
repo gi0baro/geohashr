@@ -2,7 +2,7 @@ from contextlib import nullcontext
 
 import pytest
 
-from geohashr import EncodeError, ParamError, neighbors, neighbor
+from geohashr import EncodeError, ParamError, neighbor, neighbors
 
 
 @pytest.mark.parametrize(
