@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set jemalloc for aarch64 Linux
-        if: matrix.target == 'aarch64' && matrix.os == 'ubuntu'
+        if: matrix.target == 'aarch64' && matrix.os == 'ubuntu-latest'
         run: |
           echo "JEMALLOC_SYS_WITH_LG_PAGE=16" >> $GITHUB_ENV
       - uses: pyo3/maturin-action@v1
@@ -93,6 +93,9 @@ jobs:
       - run: |
           RUST_HOST=$(rustc -Vv | grep host | cut -d ' ' -f 2) rustup run stable bash -c 'echo LLVM_PROFDATA=$RUSTUP_HOME/toolchains/$RUSTUP_TOOLCHAIN/lib/rustlib/$RUST_HOST/bin/llvm-profdata >> "$GITHUB_ENV"'
         shell: bash
+      - if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p ${{ github.workspace }}/profdata
       - name: Generate PGO data
         shell: bash
         run: |
