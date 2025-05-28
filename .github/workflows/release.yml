@@ -41,11 +41,9 @@ jobs:
           - os: ubuntu
             platform: linux
             target: i686
-            interpreter: 3.9 3.10 3.11 3.12 3.13
           - os: ubuntu
             platform: linux
             target: armv7
-            interpreter: 3.9 3.10 3.11 3.12 3.13
           - os: ubuntu
             platform: linux
             target: x86_64
