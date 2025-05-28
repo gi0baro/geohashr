@@ -9,29 +9,27 @@ on:
     branches:
       - master
 
-env:
-  MATURIN_VERSION: 1.7.4
-
 jobs:
   linux:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.13t']
 
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: false
     - name: Install
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        pip install maturin==${{ env.MATURIN_VERSION }}
-        maturin develop --extras=test
+        uv python install ${{ env.UV_PYTHON }}
+        uv venv .venv
+        uv sync --group all
+        uv run --no-sync maturin develop
     - name: Test
       run: |
         source .venv/bin/activate
@@ -42,20 +40,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.13t']
 
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: false
     - name: Install
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        pip install maturin==${{ env.MATURIN_VERSION }}
-        maturin develop --extras=test
+        uv python install ${{ env.UV_PYTHON }}
+        uv venv .venv
+        uv sync --group all
+        uv run --no-sync maturin develop
     - name: Test
       run: |
         source .venv/bin/activate
@@ -66,21 +65,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.13t']
 
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: false
     - name: Install
       run: |
-        python -m venv venv
-        venv/Scripts/Activate.ps1
-        pip install maturin==${{ env.MATURIN_VERSION }} pytest
-        maturin develop --extras=test
+        uv python install ${{ env.UV_PYTHON }}
+        uv venv .venv
+        uv sync --group all
+        uv run --no-sync maturin develop
     - name: Test
       run: |
-        venv/Scripts/Activate.ps1
-        make test
+        uv run --no-sync pytest -v tests
