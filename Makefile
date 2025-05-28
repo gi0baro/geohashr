@@ -4,7 +4,8 @@ pysources = geohashr tests
 .PHONY: build-dev
 build-dev:
 	@rm -f geohashr/*.so
-	maturin develop --extras lint,test
+	uv sync --group all
+	maturin develop --uv
 
 .PHONY: format
 format:

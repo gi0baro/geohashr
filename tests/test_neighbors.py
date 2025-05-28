@@ -8,8 +8,35 @@ from geohashr import EncodeError, ParamError, neighbor, neighbors
 @pytest.mark.parametrize(
     ("hash", "raises", "out"),
     [
-        ("000000000000", pytest.raises(EncodeError), {}),
-        ("zzzzzzzzzzzz", pytest.raises(EncodeError), {}),
+        ("************", pytest.raises(EncodeError), {}),
+        (
+            "000000000000",
+            nullcontext(),
+            {
+                "e": "000000000002",
+                "n": "000000000001",
+                "ne": "000000000003",
+                "nw": "pbpbpbpbpbpc",
+                "s": "bpbpbpbpbpbp",
+                "se": "bpbpbpbpbpbr",
+                "sw": "zzzzzzzzzzzz",
+                "w": "pbpbpbpbpbpb",
+            },
+        ),
+        (
+            "zzzzzzzzzzzz",
+            nullcontext(),
+            {
+                "e": "bpbpbpbpbpbp",
+                "n": "pbpbpbpbpbpb",
+                "ne": "000000000000",
+                "nw": "pbpbpbpbpbp8",
+                "s": "zzzzzzzzzzzy",
+                "se": "bpbpbpbpbpbn",
+                "sw": "zzzzzzzzzzzw",
+                "w": "zzzzzzzzzzzx",
+            },
+        ),
         (
             "bgr96qxvpd46",
             nullcontext(),
