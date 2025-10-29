@@ -35,7 +35,7 @@ static DIRECTION_MAP: LazyLock<HashMap<&'static str, Direction>> = LazyLock::new
 #[pyfunction]
 #[pyo3(signature = (hash))]
 fn decode(py: Python, hash: &str) -> PyResult<(f64, f64)> {
-    match py.allow_threads(|| geohash::decode(hash)) {
+    match py.detach(|| geohash::decode(hash)) {
         Ok((coords, _, _)) => Ok((coords.y, coords.x)),
         Err(err) => Err(DecodeError::new_err(err.to_string())),
     }
@@ -44,7 +44,7 @@ fn decode(py: Python, hash: &str) -> PyResult<(f64, f64)> {
 #[pyfunction]
 #[pyo3(signature = (hash))]
 fn decode_exact(py: Python, hash: &str) -> PyResult<(f64, f64, f64, f64)> {
-    match py.allow_threads(|| geohash::decode(hash)) {
+    match py.detach(|| geohash::decode(hash)) {
         Ok((coords, dx, dy)) => Ok((coords.y, coords.x, dy, dx)),
         Err(err) => Err(DecodeError::new_err(err.to_string())),
     }
@@ -53,7 +53,7 @@ fn decode_exact(py: Python, hash: &str) -> PyResult<(f64, f64, f64, f64)> {
 #[pyfunction]
 #[pyo3(signature = (lat, lon, len = 12))]
 fn encode(py: Python, lat: f64, lon: f64, len: usize) -> PyResult<String> {
-    match py.allow_threads(|| geohash::encode(geohash::Coord { x: lon, y: lat }, len)) {
+    match py.detach(|| geohash::encode(geohash::Coord { x: lon, y: lat }, len)) {
         Ok(hash) => Ok(hash),
         Err(err) => Err(EncodeError::new_err(err.to_string())),
     }
@@ -62,7 +62,7 @@ fn encode(py: Python, lat: f64, lon: f64, len: usize) -> PyResult<String> {
 #[pyfunction]
 #[pyo3(signature = (hash))]
 fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
-    match py.allow_threads(|| {
+    match py.detach(|| {
         let bbox = geohash::decode_bbox(hash)?;
         Ok::<(geohash::Coord, geohash::Coord), geohash::GeohashError>((bbox.min(), bbox.max()))
     }) {
@@ -81,7 +81,7 @@ fn bbox<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
 #[pyfunction]
 #[pyo3(signature = (hash))]
 fn neighbors<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
-    match py.allow_threads(|| geohash::neighbors(hash)) {
+    match py.detach(|| geohash::neighbors(hash)) {
         Ok(neighbors) => {
             let dict = PyDict::new(py);
             dict.set_item(pyo3::intern!(py, "e"), neighbors.e)?;
@@ -101,7 +101,7 @@ fn neighbors<'p>(py: Python<'p>, hash: &str) -> PyResult<Bound<'p, PyDict>> {
 #[pyfunction]
 #[pyo3(signature = (hash, direction))]
 fn neighbor(py: Python, hash: &str, direction: &str) -> PyResult<String> {
-    match py.allow_threads(|| {
+    match py.detach(|| {
         if let Some(dir) = DIRECTION_MAP.get(direction) {
             geohash::neighbor(hash, *dir).map_err(NeighborError::Hash)
         } else {
