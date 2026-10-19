@@ -56,7 +56,7 @@ dependencies = [
 
 [[package]]
 name = "geohashr"
-version = "1.6.0"
+version = "1.7.0"
 dependencies = [
  "geohash",
  "pyo3",
